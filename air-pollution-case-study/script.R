@@ -1,5 +1,6 @@
-## setwd("~/CourseraModules/04_ExploratoryAnalysis/CaseStudy/pm25_data")
+## setw("~/CourseraModules/04_ExploratoryAnalysis/CaseStudy/pm25_data")
 
+## Has fine particle pollution in the U.S. decreased from 1999 to
 ## Has fine particle pollution in the U.S. decreased from 1999 to
 ## 2012?
 
@@ -12,7 +13,8 @@ cnames <- readLines("./pm25_data/RD_501_88101_1999-0.txt", 1)
 print(cnames)
 cnames <- strsplit(cnames, "|", fixed = TRUE)
 print(cnames)
-names(pm0) <- make.names(cnames[[1]])
+names(pm0) <- make.names(cnames[[1]]) 
+
 head(pm0)
 x0 <- pm0$Sample.Value
 class(x0)
