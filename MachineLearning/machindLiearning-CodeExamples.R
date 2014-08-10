@@ -101,4 +101,21 @@ trainPC <- predict(preProc,log10(training[,-58]+1))
 modelFit <- train(training$type ~ . , method="glm",data=trainPC) 
 
 modelFit2 <- train(training$type ~ . ,method="glm", preProcess="pca", data=training)
-confusionMatrix(testing$type, predict(modelFit2, testing)
+confusionMatrix(testing$type, predict(modelFit2, testing))
+
+### Quiz 2, Question 4
+library(caret)
+library(AppliedPredictiveModeling)
+set.seed(3433)
+data(AlzheimerDisease)
+adData = data.frame(diagnosis,predictors)
+inTrain = createDataPartition(adData$diagnosis, p = 3/4)[[1]]
+training = adData[ inTrain,]
+testing = adData[-inTrain,]
+
+x <- grepl("^IL.+",names(training))
+trinNames <- names(training)[x]
+preProc <- preProcess(training[,trinNames],method="pca",pcaComp=2)
+trainPC <- predict(preProc,training[,trinNames])
+modelFit <- train(training$diagnosis ~ ., method="glm",data=trainPC)
+confusionMatrix(training$diagnosis, predict(modelFit, training))
