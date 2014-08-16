@@ -160,3 +160,106 @@ predict(modFit, newdata = natesting)
 
 
 ## Random Forests
+data(iris);
+library(ggplot2);
+library(caret)
+inTrain <- createDataPartition(y=iris$Species, p=0.7, list=F)
+training <- iris[inTrain,]
+testing <- iris[-inTrain,]
+modFit <- train(Species ~ . , data=training, method="rf", prox=TRUE)
+irisP <- classCenter(training[,c(3,4)], training$Species, modFit$finalModel$prox)
+irisP <- as.data.frame(irisP)
+irisP$Species <- rownames(irisP)
+p <- qplot(Petal.Width, Petal.Length, col=Species, data=training)
+p + geom_point(aes(x=Petal.Width, y=Petal.Length, col=Species), size=5, shape=4, data=irisP)
+
+
+pred <- predict(modFit, testing)
+testing$predRight <- pred==testing$Species
+table(pred, testing$Species)
+
+qplot(Petal.Width, Petal.Length, colour=predRight, data=testing, main="newdata Predictions")
+
+
+## Boosting
+
+library(ISLR)
+data(Wage)
+library(ggplot2)
+library(caret)
+Wage <- subset(Wage, select=-c(logwage))
+inTrain <- createDataPartition(y=Wage$wage, p=0.7, list=F)
+training <- Wage[inTrain,]
+testing <- Wage[-inTrain,]
+modFit <- train(wage ~ . , method="gbm", data=training, verbose=FALSE)
+qplot(predict(modFit,testing), wage, data=testing)
+
+## Model Based Prediction - Naive Bayes
+data(iris);
+library(ggplot2);
+library(caret)
+inTrain <- createDataPartition(y=iris$Species, p=0.7, list=F)
+training <- iris[inTrain,]
+testing <- iris[-inTrain,]
+dim(training)
+dim(testing)
+
+modlda <- train(Species ~ . , data=training, method="lda")
+modnb <- train(Species ~ . , data=training, method="nb")
+plda = predict(modlda, testing)
+pnb = predict(modnb, testing)
+table(plda,pnb)
+equalPredictions = (plda== pnb)
+qplot(Petal.Width, Petal.Length, colour = equalPredictions, data=testing)
+
+library(AppliedPredictiveModeling)
+data(segmentationOriginal)
+library(caret)
+training<-  subset(segmentationOriginal, Case=="Train")[,c("Class","FiberWidthCh1","VarIntenCh4","PerimStatusCh1")]
+#training<-  subset(segmentationOriginal, Case=="Train")[,c("Class","TotalIntenCh2","FiberWidthCh1","PerimStatusCh1")]
+#training<-  subset(segmentationOriginal, Case=="Train")[,c("Class","TotalIntenCh2","FiberWidthCh1","PerimStatusCh1","VarIntenCh4")]
+#training<-  subset(segmentationOriginal, Case=="Train")
+set.seed(125)
+modFit<- train(Class~. , data=training,method="rpart") 
+modFit$finalModel
+
+newData <- data.frame( FiberWidthCh1= 8,VarIntenCh4= 100, PerimStatusCh1=2)
+predict(modFit$finalModel, newdata = newData)
+
+
+
+library(pgmm)
+library(tree)
+data(olive)
+olive = olive[,-1]
+#modFit <- train(Area ~ . , data=olive, method="rpart2",na.omit=T)
+modFit <- tree( Area ~ . , data=olive )
+newdata = as.data.frame(t(colMeans(olive)))
+predict(modFit, newdata = newdata)
+
+
+
+library(ElemStatLearn)
+data(SAheart)
+set.seed(8484)
+train = sample(1:dim(SAheart)[1],size=dim(SAheart)[1]/2,replace=F)
+trainSA = SAheart[train,]
+testSA = SAheart[-train,]
+
+set.seed(13234)
+myFom <- chd ~ age + alcohol + obesity + tobacco + typea + ldl
+#modFit <- train(myFom, method="glm", family="binomial",data=trainSA)
+modFit <- glm(myFom,  family="binomial",data=trainSA)
+missClass = function(values,prediction){sum(((prediction > 0.5)*1) != values)/length(values)}
+missClass(trainSA$chd, predict(modFit, type = "response"))
+missClass(testSA, predict(modFit,testSA))
+
+
+
+library(ElemStatLearn)
+data(vowel.train)
+data(vowel.test) 
+vowel.train$y = as.factor(vowel.train$y)
+vowel.test$y = as.factor(vowel.test$y)
+modFit <- train(y ~ . , data=vowel.train, method="rf", PROX=TRUE)
+varImp(modFit)
