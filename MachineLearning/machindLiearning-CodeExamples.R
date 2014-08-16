@@ -115,7 +115,48 @@ testing = adData[-inTrain,]
 
 x <- grepl("^IL.+",names(training))
 trinNames <- names(training)[x]
-preProc <- preProcess(training[,trinNames],method="pca",pcaComp=2)
+preProc <- preProcess(training[,trinNames],,thresh = 0.8,method="pca")
 trainPC <- predict(preProc,training[,trinNames])
+plot(trainPC[,1],trainPC[,2])
 modelFit <- train(training$diagnosis ~ ., method="glm",data=trainPC)
+confusionMatrix(training$diagnosis, predict(modelFit, trainPC))
+
+
+set.seed(3433)
+data(AlzheimerDisease)
+adData = data.frame(diagnosis,predictors)
+inTrain = createDataPartition(adData$diagnosis, p = 3/4)[[1]]
+training = adData[ inTrain,]
+testing = adData[-inTrain,]
+
+x <- grepl("^IL.+",names(training))
+trinNames <- names(training)[x]
+modelFit <- train(training$diagnosis ~ ., method="glm",data=training)
 confusionMatrix(training$diagnosis, predict(modelFit, training))
+
+## Lecture of Predicting with Trees
+data(iris)
+names(iris)
+
+trainIdx <- createDataPartition(y = iris$Species, p=0.7, list=F)
+training <- iris[trainIdx,]
+testing <- iris[-trainIdx,]
+qplot(Sepal.Width, Petal.Width,colour=Species, data=training)
+
+library(caret)
+modFit <- train(Species~ . , method="rpart", data=training)
+
+modFit$finalModel
+
+library(rattle)
+fancyRpartPlot(modFit$finalModel)
+
+predict(modFit, newdata = testing)
+
+natesting <- testing
+natesting$Species <- NA
+predict(modFit, newdata = natesting)
+
+
+
+## Random Forests
