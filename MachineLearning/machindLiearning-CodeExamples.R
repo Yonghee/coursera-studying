@@ -263,3 +263,75 @@ vowel.train$y = as.factor(vowel.train$y)
 vowel.test$y = as.factor(vowel.test$y)
 modFit <- train(y ~ . , data=vowel.train, method="rf", PROX=TRUE)
 varImp(modFit)
+
+
+## Quiz 4 question1 
+
+library(caret)
+library(ElemStatLearn)
+library(medley)
+data(vowel.train)
+data(vowel.test) 
+vowel.train$y <- as.factor(vowel.train$y)
+vowel.test$y <- as.factor(vowel.test$y)
+
+set.seed(33833)
+
+modFit1=train(y~.,data=vowel.train,method='rf', trControl = trainControl(method="cv",number = 3))
+confusionMatrix(vowel.test$y, predict(modFit1, vowel.test))
+
+
+modFit2=train(y~.,data=vowel.train,method='gbm')
+confusionMatrix(vowel.test$y, predict(modFit2, vowel.test))
+
+
+pred1 <- predict(modFit1,vowel.test)
+pred2 <- predict(modFit2,vowel.test)
+predDF<- data.frame(pred1,pred2,y=vowel.test$y)
+#predDF<- data.frame(as.integer(pred1),as.integer(pred2),y=vowel.test$y)
+combModFit <- train(y ~.,method="gam",data=predDF)
+#combModFit <- train(predDF$y ~.,method="gam",data=predDF)
+
+combPred <- predict(combModFit,predDF)
+
+confusionMatrix(predDF$y, predict(combModFit,predDF))
+
+
+
+
+## Quiz4 Question 2
+library(caret)
+library(gbm)
+set.seed(3433)
+library(AppliedPredictiveModeling)
+data(AlzheimerDisease)
+adData = data.frame(diagnosis,predictors)
+inTrain = createDataPartition(adData$diagnosis, p = 3/4)[[1]]
+training = adData[ inTrain,]
+testing = adData[-inTrain,]
+
+#set.seed(62433)
+#modFit1 <- train(diagnosis ~ . , method="rf", data=training)
+#modFit2 <- train(diagnosis ~ . , method="gbm", data=training)
+#modFit3 <- train(diagnosis ~ . , method="lda", data=training)
+
+
+
+##------
+set.seed(62433)
+fit1 <- train(diagnosis ~. , data = training, method = "rf")
+fit2 <- train(diagnosis ~. , data = training, method = "gbm")
+fit3 <- train(diagnosis ~. , data = training, method = "lda")
+
+pred1 <- predict(fit1, testing)
+pred2 <- predict(fit2, testing)
+pred3 <- predict(fit3, testing)
+
+acc1 <- confusionMatrix(pred1, testing$diagnosis)
+acc2 <- confusionMatrix(pred2, testing$diagnosis)
+acc3 <- confusionMatrix(pred3, testing$diagnosis)
+
+predDF <- data.frame(pred1, pred2, pred3, diagnosis = testing$diagnosis)
+comFit <- train(diagnosis ~ ., method = "rf", data = predDF)
+comPred <- predict(comFit, predDF)
+comAcc <- confusionMatrix(comPred, predDF$diagnosis)
